@@ -24,6 +24,7 @@ posts_y_offset = 0
 posts_x_offset = 0
 is_camera_shaking = false
 camera_shake_cooldown = 0
+music_speed = 1
 -- const globals
 database = {}
 text_y_offset = -2
@@ -33,6 +34,7 @@ countdown_speed = 0.002
 profile_pics = 8
 post_pics = 4
 blinking_speed = 2
+enable_music = true
 
 function load_database()
     -- first row, second row, third row, is not porn
@@ -516,11 +518,30 @@ end
 
 -- end other draw stuff
 
+-- start music/sfx stuff
+
+function start_music()
+    if enable_music then
+        music(0)
+    end
+end
+
+function sfx_correct()
+
+end
+
+function sfx_wrong()
+
+end
+
+-- end music/sfx stuff
+
 function _init()
     load_stickers()
     load_database()
     generate_posts()
     load_tutorial_posts()
+    start_music()
 end
 
 function _update()
@@ -729,6 +750,8 @@ __music__
 00 1002110f
 00 10021112
 00 1002110f
-00 10021114
+02 10021114
 00 5042514f
 00 53425154
+
++
