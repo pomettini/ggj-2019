@@ -1,11 +1,18 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
+-- states
+menu = 0
+tutorial = 1
+game = 2
+gameover = 3
+gamestate = game
 -- gameplay globals
 posts = {}
 score = 0
 countdown = 1
 -- animation globals
+menu_lock = false
 swipe_direction = 0
 is_animating_feed = false
 is_animating_swipe = false
@@ -25,10 +32,9 @@ function load_database()
     insert_post("donna calda", "cerca te", "clicca qui", false)
     insert_post("i bless the", "rain down", "in africa", true)
     insert_post("tette", "culo", "pipolo", false)
-    insert_post("roberto", "chirone", "jek", false)
-    insert_post("b", "b", "b", false)
-    insert_post("c", "c", "c", false)
-    insert_post("d", "d", "d", false)
+    insert_post("roberto", "chirone", "jek", true)
+    insert_post("safe", "safe", "safe", true)
+    insert_post("sex", "sex", "sex", false)
 end
 
 function insert_post(first, second, third, valid)
@@ -59,15 +65,19 @@ function get_random_post_id()
 end
 
 function process_buttons()
-    if is_animating_swipe == false then
-        if btnp(5) then
+    if not is_animating_swipe and not menu_lock then
+        -- left arrow key
+        if btnp(0) then
             swipe_direction = -1
             is_animating_swipe = true
         end
-        if btnp(4) then
+        -- right arrow key
+        if btnp(1) then
             swipe_direction = 1
             is_animating_swipe = true
         end
+    else
+        menu_lock = false
     end
 end
 
@@ -79,7 +89,7 @@ function process_feed_animation()
     if posts_y_offset <= -40 then
         -- here is where the animation ends
         is_animating_feed = false
-        pop_and_push_post()
+        post_animation_ended()
         posts_x_offset = 0
         posts_y_offset = 0
     end
@@ -87,7 +97,7 @@ end
 
 function process_swipe_animation(direction)
     if is_animating_swipe then
-        posts_x_offset -= 16 * swipe_direction
+        posts_x_offset += 16 * swipe_direction
     end
 
     if posts_x_offset <= -160 or posts_x_offset >= 160 then
@@ -101,10 +111,42 @@ function do_camera_shake()
 end
 
 function decrease_countdown()
-    countdown -= 0.01
+    countdown -= 0.001 * (score + 1)
 end
 
--- start draw stuff
+function post_animation_ended()
+    evaluate_content(posts[1])
+    pop_and_push_post()
+end
+
+function evaluate_content(post)
+    if post.is_valid and swipe_direction == 1 
+    or not post.is_valid and swipe_direction == -1 then
+        score += 1
+        countdown = 1
+    else
+        countdown = 0
+    end
+end
+
+function evaluate_gameover()
+    if countdown <= 0 then
+        gamestate = gameover
+    end
+end
+
+function change_state(new_state)
+    menu_lock = true
+    gamestate = new_state
+end
+
+function reset_game_state()
+    generate_posts()
+    score = 0
+    countdown = 1
+end
+
+-- start game draw stuff
 
 function draw_background()
     rectfill(0, 0, 128, 128, 1)
@@ -170,6 +212,7 @@ function draw_debug_stuff()
     -- print(posts[0].first_row, 0, 0, 7)
     -- print(posts_x_offset, 0, 0, 7)
     -- print(flr(rnd(#database)), 0, 0, 7)
+    print(score, 0, 0, 7)
 end
 
 function draw_camera_shake()
@@ -189,7 +232,59 @@ function draw_countdown_bar()
     line(0, 112, 128, 112, 0)
 end
 
--- end draw stuff
+-- end game draw stuff
+
+-- start other update stuff
+
+function process_menu_screen()
+    if btnp(1) and not menu_lock then
+        change_state(tutorial)
+    else
+        menu_lock = false
+    end
+end
+
+function process_tutorial_screen()
+    if btnp(1) and not menu_lock then
+        change_state(game)
+    else
+        menu_lock = false
+    end
+end
+
+function process_gameover_screen()
+    if btnp(1) and not menu_lock then
+        reset_game_state()
+        change_state(game)
+    else
+        menu_lock = false
+    end
+end
+
+-- end other update stuff
+
+-- start other draw stuff
+
+function draw_menu_screen()
+    rectfill(0, 0, 128, 128, 0)
+    print("menu", 60, 60, 7)
+    print("premi destra per iniziare", 20, 80, 7)
+end
+
+function draw_tutorial_screen()
+    rectfill(0, 0, 128, 128, 0)
+    print("tutorial", 60, 60, 7)
+    print("premi destra per continuare", 15, 80, 7)
+end
+
+function draw_gameover_screen()
+    rectfill(0, 0, 128, 128, 0)
+    print("game over", 44, 40, 7)
+    print("punti:  "..score, 44, 60, 7)
+    print("premi destra per riprovare", 15, 80, 7)
+end
+
+-- end other draw stuff
 
 function _init()
     load_database()
@@ -197,17 +292,40 @@ function _init()
 end
 
 function _update()
-    process_buttons()
-    process_feed_animation()
-    process_swipe_animation()
-    decrease_countdown()
+    if gamestate == menu then
+        process_menu_screen()
+    end
+    if gamestate == tutorial then
+        process_tutorial_screen()
+    end
+    if gamestate == game then
+        process_buttons()
+        process_feed_animation()
+        process_swipe_animation()
+        decrease_countdown()
+        evaluate_gameover()
+    end
+    if gamestate == gameover then
+        process_gameover_screen()
+    end
 end
 
 function _draw()
-    draw_background()
-    draw_posts()
-    draw_bar()
-    draw_debug_stuff()
-    draw_camera_shake()
-    draw_countdown_bar()
+    if gamestate == menu then
+        draw_menu_screen()
+    end
+    if gamestate == tutorial then
+        draw_tutorial_screen()
+    end
+    if gamestate == game then
+        draw_background()
+        draw_posts()
+        draw_bar()
+        draw_debug_stuff()
+        draw_camera_shake()
+        draw_countdown_bar()
+    end
+    if gamestate == gameover then
+        draw_gameover_screen()
+    end
 end
