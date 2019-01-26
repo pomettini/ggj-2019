@@ -28,6 +28,8 @@ text_y_offset = -2
 camera_shake_intensity = 5
 camera_shake_duration = 0.5
 countdown_speed = 0.002
+profile_pics = 8
+post_pics = 4
 
 function load_database()
     -- first row, second row, third row, is not porn
@@ -54,6 +56,8 @@ function insert_post(first, second, third, valid)
     post.second_row = second
     post.third_row = third
     post.is_valid = valid
+    post.profile_id = get_random_profile_pic()
+    post.post_pic_id = get_random_post_pic()
     add(database, post)
 end
 
@@ -80,8 +84,25 @@ function pop_and_push_post()
     posts[4] = database[get_random_post_id()]
 end
 
+function pop_and_push_tutorial()
+    -- i need to pop post after the animation finishes
+    tutorial_posts[1] = tutorial_posts[2]
+    tutorial_posts[2] = tutorial_posts[3]
+    tutorial_posts[3] = tutorial_posts[4]
+    tutorial_posts[4] = tutorial_posts[5]
+    tutorial_posts[5] = nil
+end
+
 function get_random_post_id()
     return flr(rnd(#database)) + 1
+end
+
+function get_random_profile_pic()
+    return flr(rnd(profile_pics)) + 1
+end
+
+function get_random_post_pic()
+    return flr(rnd(post_pics)) + 1
 end
 
 function process_buttons()
@@ -137,8 +158,13 @@ function decrease_countdown()
 end
 
 function post_animation_ended()
-    evaluate_content(posts[1])
-    pop_and_push_post()
+    if gamestate == tutorial then
+        pop_and_push_tutorial()
+    end
+    if gamestate == game then
+        evaluate_content(posts[1])
+        pop_and_push_post()
+    end
 end
 
 function evaluate_content(post)
@@ -191,7 +217,7 @@ function draw_bar()
     print("cerca su tambler", 14, 6, 7)
 end
 
-function draw_post(x_offset, y_offset, first_row, second_row, third_row)
+function draw_post(x_offset, y_offset, first_row, second_row, third_row, profile_id, post_pic_id)
     -- post bg
     rectfill(
         32 + x_offset, 
@@ -200,12 +226,16 @@ function draw_post(x_offset, y_offset, first_row, second_row, third_row)
         40 + y_offset, 
         7)
     -- profile pic
-    rectfill(
-        8 + x_offset, 
-        8 + y_offset, 
-        24 + x_offset, 
-        24 + y_offset, 
-        0)
+    -- rectfill(
+    --     8 + x_offset, 
+    --     8 + y_offset, 
+    --     24 + x_offset, 
+    --     24 + y_offset, 
+    --     0)
+    draw_profile_pic(
+        profile_id,
+        8 + x_offset,
+        8 + y_offset)
     -- image
     rectfill(
         32 + x_offset,
@@ -213,6 +243,11 @@ function draw_post(x_offset, y_offset, first_row, second_row, third_row)
         64 + x_offset, 
         40 + y_offset, 
         0)
+    draw_post_pic(
+        post_pic_id,
+        32 + x_offset,
+        8 + y_offset
+    )
     -- text
     print(
         first_row, 
@@ -233,17 +268,17 @@ function draw_posts()
     local x_offset = posts_x_offset
     -- max 11 char for row
     -- horrible code must refactor
-    draw_post(x_offset, 0 + y_offset, posts[1].first_row, posts[1].second_row, posts[1].third_row)
-    draw_post(0, 40 + y_offset, posts[2].first_row, posts[2].second_row, posts[2].third_row)
-    draw_post(0, 80 + y_offset, posts[3].first_row, posts[3].second_row, posts[3].third_row)
-    draw_post(0, 120 + y_offset, posts[4].first_row, posts[4].second_row, posts[4].third_row)
+    draw_post(x_offset, 0 + y_offset, posts[1].first_row, posts[1].second_row, posts[1].third_row, posts[1].profile_id, posts[1].post_pic_id)
+    draw_post(0, 40 + y_offset, posts[2].first_row, posts[2].second_row, posts[2].third_row, posts[2].profile_id, posts[2].post_pic_id)
+    draw_post(0, 80 + y_offset, posts[3].first_row, posts[3].second_row, posts[3].third_row, posts[3].profile_id, posts[3].post_pic_id)
+    draw_post(0, 120 + y_offset, posts[4].first_row, posts[4].second_row, posts[4].third_row, posts[4].profile_id, posts[4].post_pic_id)
 end
 
 function draw_debug_stuff()
     -- print(posts[0].first_row, 0, 0, 7)
     -- print(posts_x_offset, 0, 0, 7)
     -- print(flr(rnd(#database)), 0, 0, 7)
-    -- print(score, 0, 0, 7)
+    -- print(tutorial_posts[1], 0, 0, 7)
 end
 
 function draw_camera_shake()
@@ -275,7 +310,7 @@ function process_menu_screen()
     end
 end
 
-function process_tutorial_screen()
+function process_tutorial_input()
     if btnp(1) and not menu_lock then
         change_state(game)
     else
@@ -289,6 +324,12 @@ function process_gameover_screen()
         change_state(game)
     else
         menu_lock = false
+    end
+end
+
+function evaluate_end_tutorial()
+    if tutorial_posts[1] == nil then
+        change_state(game)
     end
 end
 
@@ -343,12 +384,16 @@ function draw_tutorial_post(x_offset, y_offset, first_row, second_row, third_row
         40 + y_offset, 
         7)
     -- profile pic
-    rectfill(
+    -- rectfill(
+    --     8 + x_offset, 
+    --     8 + y_offset, 
+    --     24 + x_offset, 
+    --     24 + y_offset, 
+    --     0)
+    draw_profile_pic(
+        5, 
         8 + x_offset, 
-        8 + y_offset, 
-        24 + x_offset, 
-        24 + y_offset, 
-        0)
+        8 + y_offset)
     -- text
     print(
         first_row, 
@@ -368,26 +413,33 @@ function draw_tutorial_posts()
     local y_offset = posts_y_offset + 32
     local x_offset = posts_x_offset
     -- horrible code must refactor
-    draw_tutorial_post(
-        x_offset, 
-        0 + y_offset, 
-        tutorial_posts[1].first_row, 
-        tutorial_posts[1].second_row, 
-        tutorial_posts[1].third_row)
-    for i = 2, #tutorial_posts do
+    -- very horrible!!!
+    if tutorial_posts[1] != nil then
         draw_tutorial_post(
             x_offset, 
-            (40 * (i - 1)) + y_offset, 
-            tutorial_posts[i].first_row, 
-            tutorial_posts[i].second_row, 
-            tutorial_posts[i].third_row)
+            0 + y_offset, 
+            tutorial_posts[1].first_row, 
+            tutorial_posts[1].second_row, 
+            tutorial_posts[1].third_row)
+    end
+    for i = 2, #tutorial_posts + 1 do
+        if tutorial_posts[i] != nil then
+            draw_tutorial_post(
+                0, 
+                (40 * (i - 1)) + y_offset, 
+                tutorial_posts[i].first_row, 
+                tutorial_posts[i].second_row, 
+                tutorial_posts[i].third_row)
+        end
     end
 end
 
-function process_tutorial_feed_animation()
-    if is_animating_tutorial_feed then
-        tutorial_feed_y_offset -= 10
-    end
+function draw_profile_pic(id, x, y)
+    sspr(id * 16, 16, 16, 16, x, y)
+end
+
+function draw_post_pic(id, x, y)
+    sspr(id * 32, 32, 32, 32, x, y)
 end
 
 -- end other draw stuff
@@ -403,8 +455,10 @@ function _update()
         process_menu_screen()
     end
     if gamestate == tutorial then
-        process_tutorial_screen()
-        process_tutorial_feed_animation()
+        process_buttons()
+        process_feed_animation()
+        process_swipe_animation()
+        evaluate_end_tutorial()
     end
     if gamestate == game then
         process_buttons()
@@ -421,19 +475,20 @@ end
 function _draw()
     if gamestate == menu then
         draw_menu_screen()
+        -- draw_profile_pic(1, 10, 10)
     end
     if gamestate == tutorial then
         draw_background()
         draw_tutorial_posts()
-        -- draw_tutorial_screen()
+        draw_debug_stuff()
     end
     if gamestate == game then
         draw_background()
         draw_posts()
         draw_bar()
-        draw_debug_stuff()
         draw_camera_shake()
         draw_countdown_bar()
+        draw_debug_stuff()
     end
     if gamestate == gameover then
         draw_gameover_screen()
