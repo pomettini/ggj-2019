@@ -10,6 +10,8 @@ gamestate = menu
 -- gameplay globals
 posts = {}
 tutorial_posts = {}
+safe_stickers = {}
+dirty_stickers = {}
 score = 0
 countdown = 1
 -- animation globals
@@ -30,16 +32,30 @@ camera_shake_duration = 0.5
 countdown_speed = 0.002
 profile_pics = 8
 post_pics = 4
+blinking_speed = 2
 
 function load_database()
     -- first row, second row, third row, is not porn
-    insert_post("ciao", "micio", "mao", true)
-    insert_post("donna calda", "cerca te", "clicca qui", false)
-    insert_post("i bless the", "rain down", "in africa", true)
-    insert_post("tette", "culo", "pipolo", false)
-    insert_post("roberto", "chirone", "jek", true)
-    insert_post("safe", "safe", "safe", true)
-    insert_post("sex", "sex", "sex", false)
+    insert_post("donna calda", "a 2 km", "da te", false)
+    insert_post("vendesi", "soprammobili", "usati", true)
+    insert_post("clicca qui", "per il", "ca**o", false)
+    insert_post("passata di", "pomodoro", "tre per due", true)
+    insert_post("vendo", "la droga", "", false)
+    insert_post("qui foto", "di gattini", "", true)
+    insert_post("qui foto", "di", "cagnolini", true)
+    insert_post("biscotti", "in offerta", "", true)
+    insert_post("sito", "bellissimo", "sui memini", true)
+    insert_post("guardate che", "belle le", "mie tette", false)
+    insert_post("nuovissimi", "giochi per", "playstation", true)
+    insert_post("altri", "memini", "divertenti", true)
+    insert_post("qui battute", "sui coder", "", true)
+    insert_post("game of", "thrones", "streaming", false)
+    insert_post("leggi", "hentai", "online", false)
+    insert_post("nuovo modo", "allungamento", "del pene", false)
+    insert_post("visite", "gratuite", "urologo", true)
+    insert_post("nuova dieta", "di kylie", "jenner", true)
+    insert_post("qui kim", "kardashian", "nuda", false)
+    insert_post("jason momoa", "leaked", "photo", false)
 end
 
 function load_tutorial_posts()
@@ -50,6 +66,28 @@ function load_tutorial_posts()
     insert_tutorial_post("se sbagli sarai", "licenziato!!!", "")
 end
 
+function load_stickers()
+    safe_stickers = {}
+    add(safe_stickers, 2)
+    add(safe_stickers, 3)
+    add(safe_stickers, 6)
+    add(safe_stickers, 10)
+    add(safe_stickers, 11)
+    add(safe_stickers, 13)
+    add(safe_stickers, 14)
+    add(safe_stickers, 15)
+    dirty_stickers = {}
+    add(dirty_stickers, 1)
+    -- add(dirty_stickers, 4) <- shit, ambibuos
+    add(dirty_stickers, 5)
+    add(dirty_stickers, 7)
+    add(dirty_stickers, 8)
+    add(dirty_stickers, 9)
+    add(dirty_stickers, 12)
+end
+
+-- start init stuff
+
 function insert_post(first, second, third, valid)
     local post = {}
     post.first_row = first
@@ -58,6 +96,7 @@ function insert_post(first, second, third, valid)
     post.is_valid = valid
     post.profile_id = get_random_profile_pic()
     post.post_pic_id = get_random_post_pic()
+    add_sticker(post)
     add(database, post)
 end
 
@@ -75,6 +114,8 @@ function generate_posts()
         add(posts, database[get_random_post_id()])
     end
 end
+
+-- end init stuff
 
 function pop_and_push_post()
     -- i need to pop post after the animation finishes
@@ -203,6 +244,24 @@ function reset_game_state()
     posts_x_offset = 0
 end
 
+function add_sticker(post)
+    post.sticker_x = rnd(24)
+    post.sticker_y = rnd(24)
+    if post.is_valid then
+        post.sticker_id = get_safe_sticker()
+    else
+        post.sticker_id = get_dirty_sticker()
+    end
+end
+
+function get_safe_sticker()
+    return safe_stickers[flr(rnd(#safe_stickers)) + 1]
+end
+
+function get_dirty_sticker()
+    return dirty_stickers[flr(rnd(#dirty_stickers)) + 1]
+end
+
 -- start game draw stuff
 
 function draw_background()
@@ -217,7 +276,7 @@ function draw_bar()
     print("cerca su tambler", 14, 6, 7)
 end
 
-function draw_post(x_offset, y_offset, first_row, second_row, third_row, profile_id, post_pic_id)
+function draw_post(x_offset, y_offset, post)
     -- post bg
     rectfill(
         32 + x_offset, 
@@ -233,7 +292,7 @@ function draw_post(x_offset, y_offset, first_row, second_row, third_row, profile
     --     24 + y_offset, 
     --     0)
     draw_profile_pic(
-        profile_id,
+        post.profile_id,
         8 + x_offset,
         8 + y_offset)
     -- image
@@ -244,21 +303,22 @@ function draw_post(x_offset, y_offset, first_row, second_row, third_row, profile
         40 + y_offset, 
         0)
     draw_post_pic(
-        post_pic_id,
+        post.post_pic_id,
         32 + x_offset,
-        8 + y_offset
-    )
+        8 + y_offset)
+    -- draw sticker
+    draw_sticker(post, 32 + x_offset, 8 + y_offset)
     -- text
     print(
-        first_row, 
+        post.first_row, 
         72 + x_offset, 
         16 + y_offset + text_y_offset)
     print(
-        second_row, 
+        post.second_row, 
         72 + x_offset, 
         24 + y_offset + text_y_offset)
     print(
-        third_row, 
+        post.third_row, 
         72 + x_offset, 
         32 + y_offset + text_y_offset)
 end
@@ -268,10 +328,10 @@ function draw_posts()
     local x_offset = posts_x_offset
     -- max 11 char for row
     -- horrible code must refactor
-    draw_post(x_offset, 0 + y_offset, posts[1].first_row, posts[1].second_row, posts[1].third_row, posts[1].profile_id, posts[1].post_pic_id)
-    draw_post(0, 40 + y_offset, posts[2].first_row, posts[2].second_row, posts[2].third_row, posts[2].profile_id, posts[2].post_pic_id)
-    draw_post(0, 80 + y_offset, posts[3].first_row, posts[3].second_row, posts[3].third_row, posts[3].profile_id, posts[3].post_pic_id)
-    draw_post(0, 120 + y_offset, posts[4].first_row, posts[4].second_row, posts[4].third_row, posts[4].profile_id, posts[4].post_pic_id)
+    draw_post(x_offset, 0 + y_offset, posts[1])
+    draw_post(0, 40 + y_offset, posts[2])
+    draw_post(0, 80 + y_offset, posts[3])
+    draw_post(0, 120 + y_offset, posts[4])
 end
 
 function draw_debug_stuff()
@@ -293,9 +353,17 @@ function draw_camera_shake()
 end
 
 function draw_countdown_bar()
-    rectfill(0, 112, 128, 128, 0)
-    rectfill(0, 112, 128 * countdown, 128, 7)
-    line(0, 112, 128, 112, 0)
+    local height = 12
+    rectfill(0, 128 - height, 128, 128, 0)
+    rectfill(0, 128 - height, 128 * countdown, 128, 7)
+    line(0, 128 - height, 128, 128 - height, 0)
+end
+
+function draw_sticker(post, offset_x, offset_y)
+    spr(
+        post.sticker_id, 
+        post.sticker_x + offset_x, 
+        post.sticker_y + offset_y)
 end
 
 -- end game draw stuff
@@ -338,15 +406,15 @@ end
 -- start other draw stuff
 
 function draw_menu_screen()
-    rectfill(0, 0, 128, 128, 0)
-    print("menu", 60, 60, 7)
-    print("premi destra per iniziare", 20, 80, 7)
+    rectfill(0, 0, 128, 128, 12)
+    sspr(0, 96, 128, 32, 0, 27)
+    blinking_text_centered("premi freccia dx per iniziare", 94) 
 end
 
 function draw_tutorial_screen()
     rectfill(0, 0, 128, 128, 0)
     print("tutorial", 60, 60, 7)
-    print("premi destra per continuare", 15, 80, 7)
+    print("premi freccia dx per continuare", 15, 80, 7)
 end
 
 function draw_gameover_screen()
@@ -355,7 +423,7 @@ function draw_gameover_screen()
     draw_text_wave("  game over  ", 26 + y_offset)
     draw_text_center("sei stato cacciato!", 52 + y_offset)
     draw_text_center("il tuo punteggio e': "..score, 78 + y_offset)
-    draw_text_center("premi destra per riprovare", 104 + y_offset)
+    blinking_text_centered("premi freccia dx per riprovare", 104 + y_offset)
 end
 
 function draw_text_wave(text, y)
@@ -375,7 +443,7 @@ function h_center(text)
     return 64 - #text * 2
 end
 
-function draw_tutorial_post(x_offset, y_offset, first_row, second_row, third_row)
+function draw_tutorial_post(x_offset, y_offset, post)
     -- post bg
     rectfill(
         32 + x_offset, 
@@ -396,21 +464,21 @@ function draw_tutorial_post(x_offset, y_offset, first_row, second_row, third_row
         8 + y_offset)
     -- text
     print(
-        first_row, 
+        post.first_row, 
         40 + x_offset, 
         16 + y_offset + text_y_offset, 0)
     print(
-        second_row, 
+        post.second_row, 
         40 + x_offset, 
         24 + y_offset + text_y_offset, 0)
     print(
-        third_row, 
+        post.third_row, 
         40 + x_offset, 
         32 + y_offset + text_y_offset, 0)
 end
 
 function draw_tutorial_posts()
-    local y_offset = posts_y_offset + 32
+    local y_offset = posts_y_offset + 16
     local x_offset = posts_x_offset
     -- horrible code must refactor
     -- very horrible!!!
@@ -418,18 +486,14 @@ function draw_tutorial_posts()
         draw_tutorial_post(
             x_offset, 
             0 + y_offset, 
-            tutorial_posts[1].first_row, 
-            tutorial_posts[1].second_row, 
-            tutorial_posts[1].third_row)
+            tutorial_posts[1])
     end
     for i = 2, #tutorial_posts + 1 do
         if tutorial_posts[i] != nil then
             draw_tutorial_post(
                 0, 
                 (40 * (i - 1)) + y_offset, 
-                tutorial_posts[i].first_row, 
-                tutorial_posts[i].second_row, 
-                tutorial_posts[i].third_row)
+                tutorial_posts[i])
         end
     end
 end
@@ -442,9 +506,18 @@ function draw_post_pic(id, x, y)
     sspr(id * 32, 32, 32, 32, x, y)
 end
 
+function blinking_text_centered(text, y)
+    if (time() * blinking_speed) % 2 > 1 then
+        print(text, h_center(text), y, 7)
+    else
+        print(text, h_center(text), y, 5)
+    end
+end
+
 -- end other draw stuff
 
 function _init()
+    load_stickers()
     load_database()
     generate_posts()
     load_tutorial_posts()
@@ -475,12 +548,12 @@ end
 function _draw()
     if gamestate == menu then
         draw_menu_screen()
-        -- draw_profile_pic(1, 10, 10)
     end
     if gamestate == tutorial then
         draw_background()
         draw_tutorial_posts()
         draw_debug_stuff()
+        blinking_text_centered("premi freccia dx per avanzare", 9)
     end
     if gamestate == game then
         draw_background()
@@ -588,3 +661,74 @@ e00ff67775ffff0033b300000000333300aaffffffff000005677667776945000000005f44f50000
 000000000ffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000ffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000fffff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777777ccccccccc777777777ccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777777ccccccccc777777777ccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777777ccccccccc777777777ccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777777ccccccccc777777777ccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777777ccccccccc777777777ccccccccccccccccccccccccccccccccccccccc
+cccc7777cccccccccccccccccccccccccccccccccccccccccccccccccccccc000777777ccccccccc000077777ccccccccccccccccccccccccccccccccccccccc
+cccc7777ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777ccccccccccccc77777ccccccccccccccccccccccccccccccccccccccc
+c7777777ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777ccccccccccccc77777ccccccccccccccccccccccccccccccccccccccc
+c7777777ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc777777ccccccccccccc77777ccccccccccccccccccccccccccccccccccccccc
+77777777777777ccc77777777777ccccccc77777cc777777ccc7777777ccccccc777777ccccccccccccc77777cccccccccccccccccccccccc77777cccccccccc
+77777777777777ccc77777777777ccccccc77777cc777777cc77777777ccccccc777777ccccccccccccc77777cccccccccccccccccccccccc77777cccccccccc
+77777777777777cc77777777777777ccccc7777777777777777777777777ccccc777777ccccccccccccc77777ccccccccc777777777cccccc77777cccccccccc
+77777777777777cc77777777777777ccccc7777777777777777777777777ccccc7777777777777cccccc77777cccccccc77777777777ccccc77777cc7777cccc
+77777777777777cc77777777777777ccccc7777777777777777777777777ccccc77777777777777ccccc77777ccccccc7777777777777cccc77777777777cccc
+00777777000000cc77777000077777ccccc7777777777777777777777777ccccc7777777777777777ccc77777ccccccc7777777777777cccc77777777777cccc
+cc777777cccccccc77777cccc77777ccccc777777777777777777777777777ccc7777777777777777ccc77777cccccc777777777777777ccc77777777777cccc
+cc777777cccccccc00000cccc77777ccccc777770000007777700000777777ccc7777770000007777ccc77777cccccc777777777777777ccc77777077770cccc
+cc777777ccccccccccccccccc77777ccccc77777cccccc77777ccccc777777ccc777777cccccc7777ccc77777cccccc777777ccccc7777ccc77777077700cccc
+cc777777cccccccc77777777777777ccccc77777cccccc77777ccccc777777ccc777777cccccc7777ccc77777cccccc777777000007777ccc77777c000cccccc
+cc777777cccccccc77777777777777ccccc77777cccccc77777ccccc777777ccc777777cccccc7777ccc77777cccccc777777777777777ccc77777cccccccccc
+cc777777777ccccc77777cccc77777ccccc77777cccccc77777ccccc777777ccc777777cccccc7777ccc77777cccccc777777777777777ccc77777cccccccccc
+cc777777777ccccc77777cccc77777ccccc77777cccccc77777ccccc777777ccc777777cccccc7777ccc77777cccccc777777777777777ccc77777cccccccccc
+cc777777777ccccc77777cccc77777ccccc77777cccccc77777ccccc777777ccc7777777777777777ccc777777777cc777777cccccccccccc77777ccccc77777
+cc777777777ccccc77777000077777ccccc77777cccccc77777ccccc777777ccc7777777777777777ccc777777777cc777777cccccccccccc77777ccccc77777
+cc777777777ccccc0777777777777777c777777777cc777777777cc77777777cc7777777777777777ccc777777777cc777777777777777c777777777ccc77777
+cc007777777cccccc777777777777777c777777777cc777777777cc77777777cc7777777777777700ccc777777777cc777777777777777c777777777ccc77777
+cccc7777777cccccc777777777777777c777777777cc777777777cc77777777cc77777777777777ccccc777777777cc007777777777777c777777777ccc77777
+cccc0000000cccccc000000000000000c000000000cc000000000cc00000000cc00000000000000ccccc000000000ccc00000000000000c00000000000000000
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+__sfx__
+000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01140000210400000000000210400000021040000002104021040000002004000000250400000000000000000c000000000000000000000000000000000000000000000000000000000000000000000000000000
+011400000c63300000000000c6330c6330000000000000000c63000000000000c6330c63300000000000c6000c63000000000000c6330c6330000000000000000c63000000000000c6330c633000000000000000
+011400001905000000000001905019000190500000019050190500000017040000001c0500000000000000000c000000000000000000000000000000000000000000000000000000000000000000000000000000
+011400000000000000000000000000000000001e0601c0401904017040190401e0601c0401904017040190401e0601c0401904017040190401e0601c040190001e0001c0001900017000190001e0001c00000000
+0014000000000000001e0501e0501e050000001e050000001e050000001e05020050200502205022050230502305023050230500000000000000001b0501b0501c0501c0501c050000001e0501e0500000000000
+001400001e0501e050000001c0501c0501c0501c0001b0501b0501b0500000019050190500000017050000001b0501b0501b0501b0501c0501c0301c0501b0501905019000190001905000000190500000019050
+001400001704000000170401704000000170401704000000160400000016040160401604000000000001604014040140400000014040000001404000000000001204000000120401204000000120401204000000
+00140000170400000017040150400000015040000001404014040200000c000150400000000000000000000014040000001404014040140400000014040140402105000000000002105000000210500000021050
+001400002105000000200502000025050200000000000000190000000000000000000000000000000000000000000000000000000000000000000000000000002104000000000002104000000210400000021040
+00140000190500000017050000001c050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001905000000000001905000000190500000019050
+011400002105000000200502000025050200000000000000190000000000000000000000000000000000000000000000000000000000000000000000000000001e04000000000001e040000001e040000001e040
+001400000c63300000000000c6330c6330000000000000000c63000000000000c6330c63300000000000c6000c63000000000000c6330c6330000000000000000c63000000000000c6330c633000000000000000
+00140000190500000017050000001c050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001905000000000001905000000190500000019050
+001400000000000000000000000000000000001e0601c0401904017040190401e0601c0401904017040190401e0601c0401904017040190401e0601c040190002100021052210522105221000210501c00021050
+001400002105000000210500000021050000002105021050210502105020000200002000220050200002005020050200502005000000000000000000000000002100021052210522105221000210502100021050
+001400001a050000001a050000001a050000001a05000000150500000015050000001505000000150500000010050000001005000000100500000010050000001e050000001e050000001e050000001e05000000
+0014000021030000002103000000210300000021030000001c030000001c030000001c030000001c030000001c030000001c030000001c030000001c030000001904000000000001904000000190400000019040
+001400002105000000210500000021050000002105021050210502105023050230502105020050200002005020050200502005000000000000000000000000002100021050210502105021000210502100021050
+001400001a050000001a050000001a050000001a0500000015050000001505000000150500000015050000001905000000190500000019050000001905000000210500000021000210501e000210501e00021050
+0014000021050000002105000000210502105020000000002105021050210502105020050200501c0501c05020050200502005020050200502005021050200501e05000000000001e050000001e050000001e050
+0014000000000000000000000000000000000000000000000000000000000000000000000000001e0601c0401904017040190401e0601c0401904017040190401e0601c0401904017040190401e0601c04000000
+__music__
+00 01020315
+00 01020315
+00 0702054b
+00 08020644
+00 09020a04
+00 0b0c0d0e
+00 1002110f
+00 10021112
+00 1002110f
+00 10021114
+00 5042514f
+00 53425154
