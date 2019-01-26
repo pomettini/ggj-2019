@@ -14,6 +14,7 @@ score = 0
 countdown = 1
 -- animation globals
 menu_lock = false
+-- game animation globals
 swipe_direction = 0
 is_animating_feed = false
 is_animating_swipe = false
@@ -40,7 +41,7 @@ function load_database()
 end
 
 function load_tutorial_posts()
-    insert_tutorial_post("sei rob, il", "nuovo moderatorw", "di tambler")
+    insert_tutorial_post("sei rob, il", "nuovo moderatore", "di tambler")
     insert_tutorial_post("il tuo lavoro e'", "eliminiare i", "contenuti espliciti")
     insert_tutorial_post("premi la freccia", "a destra per", "approvare il post")
     insert_tutorial_post("premi la freccia", "a sinistra per", "eliminare il post")
@@ -159,12 +160,21 @@ end
 function change_state(new_state)
     menu_lock = true
     gamestate = new_state
+
+    if new_state == game then
+        reset_game_state()
+    end
 end
 
 function reset_game_state()
     generate_posts()
     score = 0
     countdown = 1
+    swipe_direction = 0
+    is_animating_feed = false
+    is_animating_swipe = false
+    posts_y_offset = 0
+    posts_x_offset = 0
 end
 
 -- start game draw stuff
@@ -327,33 +337,57 @@ end
 function draw_tutorial_post(x_offset, y_offset, first_row, second_row, third_row)
     -- post bg
     rectfill(
-        8 + x_offset, 
+        32 + x_offset, 
         8 + y_offset, 
         120 + x_offset, 
         40 + y_offset, 
         7)
+    -- profile pic
+    rectfill(
+        8 + x_offset, 
+        8 + y_offset, 
+        24 + x_offset, 
+        24 + y_offset, 
+        0)
+    -- text
     print(
         first_row, 
-        72 + x_offset, 
-        16 + y_offset + text_y_offset)
+        40 + x_offset, 
+        16 + y_offset + text_y_offset, 0)
     print(
         second_row, 
-        72 + x_offset, 
-        24 + y_offset + text_y_offset)
+        40 + x_offset, 
+        24 + y_offset + text_y_offset, 0)
     print(
         third_row, 
-        72 + x_offset, 
-        32 + y_offset + text_y_offset)
+        40 + x_offset, 
+        32 + y_offset + text_y_offset, 0)
 end
 
 function draw_tutorial_posts()
-    local y_offset = posts_y_offset + 16
+    local y_offset = posts_y_offset + 32
     local x_offset = posts_x_offset
     -- horrible code must refactor
-    draw_tutorial_post(x_offset, 0 + y_offset, posts[1].first_row, posts[1].second_row, posts[1].third_row)
-    draw_tutorial_post(0, 40 + y_offset, posts[2].first_row, posts[2].second_row, posts[2].third_row)
-    draw_tutorial_post(0, 80 + y_offset, posts[3].first_row, posts[3].second_row, posts[3].third_row)
-    draw_tutorial_post(0, 120 + y_offset, posts[4].first_row, posts[4].second_row, posts[4].third_row)
+    draw_tutorial_post(
+        x_offset, 
+        0 + y_offset, 
+        tutorial_posts[1].first_row, 
+        tutorial_posts[1].second_row, 
+        tutorial_posts[1].third_row)
+    for i = 2, #tutorial_posts do
+        draw_tutorial_post(
+            x_offset, 
+            (40 * (i - 1)) + y_offset, 
+            tutorial_posts[i].first_row, 
+            tutorial_posts[i].second_row, 
+            tutorial_posts[i].third_row)
+    end
+end
+
+function process_tutorial_feed_animation()
+    if is_animating_tutorial_feed then
+        tutorial_feed_y_offset -= 10
+    end
 end
 
 -- end other draw stuff
@@ -370,6 +404,7 @@ function _update()
     end
     if gamestate == tutorial then
         process_tutorial_screen()
+        process_tutorial_feed_animation()
     end
     if gamestate == game then
         process_buttons()
