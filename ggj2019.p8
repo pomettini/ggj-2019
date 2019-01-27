@@ -31,7 +31,7 @@ database = {}
 text_y_offset = -2
 camera_shake_intensity = 5
 camera_shake_duration = 0.5
-countdown_speed = 0.002
+countdown_speed = 0.0015
 profile_pics = 8
 post_pics = 4
 blinking_speed = 2
@@ -53,7 +53,7 @@ function load_database()
     insert_post("nuovissimi", "giochi per", "playstation", true)
     insert_post("altri", "memini", "divertenti", true)
     insert_post("qui battute", "sui coder", "", true)
-    insert_post("game of", "thrones", "streaming", false)
+    -- insert_post("game of", "thrones", "streaming", true)
     insert_post("leggi", "hentai", "online", false)
     insert_post("nuovo modo", "allungamento", "del pene", false)
     insert_post("visite", "gratuite", "urologo", true)
@@ -536,7 +536,7 @@ end
 
 function draw_profile_pic(id, x, y)
     -- rendering bug?
-    sspr(id * 16, 15, 16, 16, x, y)
+    sspr(id * 16, 16, 16, 16, x, y)
 end
 
 function draw_post_pic(post, x, y)
