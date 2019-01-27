@@ -427,7 +427,7 @@ function process_tutorial_input()
 end
 
 function process_gameover_screen()
-    if btnp(1) and not menu_lock then
+    if btnp(2) and not menu_lock then
         reset_game_state()
         change_state(game)
     else
@@ -479,7 +479,7 @@ function draw_gameover_screen()
     draw_text_wave("  game over  ", 26 + y_offset)
     draw_text_center("sei stato cacciato!", 52 + y_offset)
     draw_text_center("il tuo punteggio e': "..score, 78 + y_offset)
-    blinking_text_centered("premi freccia dx per riprovare", 104 + y_offset)
+    blinking_text_centered("premi freccia su per riprovare", 104 + y_offset)
 end
 
 function draw_credits_screen()
