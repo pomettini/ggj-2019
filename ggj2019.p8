@@ -24,6 +24,7 @@ posts_y_offset = 0
 posts_x_offset = 0
 is_camera_shaking = false
 camera_shake_cooldown = 0
+music_is_playing = false
 music_speed = 1
 -- const globals
 database = {}
@@ -37,6 +38,7 @@ blinking_speed = 2
 enable_music = true
 
 function load_database()
+    database = {}
     -- first row, second row, third row, is not porn
     insert_post("donna calda", "a 2 km", "da te", false)
     insert_post("vendesi", "soprammobili", "usati", true)
@@ -97,8 +99,13 @@ function insert_post(first, second, third, valid)
     post.third_row = third
     post.is_valid = valid
     post.profile_id = get_random_profile_pic()
-    post.post_pic_id = get_random_post_pic()
+    post.pic_id = get_random_post_pic()
     add_sticker(post)
+    add_sprite_variations(post)
+    -- the big tit is very rare
+    if not post.is_valid then
+        post.show_big_tit = flr(rnd(50)) == 1
+    end
     add(database, post)
 end
 
@@ -154,11 +161,15 @@ function process_buttons()
         if btnp(0) then
             swipe_direction = -1
             is_animating_swipe = true
+            sfx_correct()
+            menu_lock = true
         end
         -- right arrow key
         if btnp(1) then
             swipe_direction = 1
             is_animating_swipe = true
+            sfx_correct()
+            menu_lock = true
         end
     else
         menu_lock = false
@@ -216,13 +227,15 @@ function evaluate_content(post)
         score += 1
         countdown = 1
     else
+        -- do_camera_shake()
         countdown = 0
+        sfx_wrong()
     end
 end
 
 function evaluate_gameover()
     if countdown <= 0 then
-        gamestate = gameover
+        change_state(gameover)
     end
 end
 
@@ -232,10 +245,12 @@ function change_state(new_state)
 
     if new_state == game then
         reset_game_state()
+        start_game_music()
     end
 end
 
 function reset_game_state()
+    load_database()
     generate_posts()
     score = 0
     countdown = 1
@@ -254,6 +269,10 @@ function add_sticker(post)
     else
         post.sticker_id = get_dirty_sticker()
     end
+end
+
+function add_sprite_variations(post)
+    post.flip_x = rnd(2) > 1
 end
 
 function get_safe_sticker()
@@ -304,12 +323,19 @@ function draw_post(x_offset, y_offset, post)
         64 + x_offset, 
         40 + y_offset, 
         0)
-    draw_post_pic(
-        post.post_pic_id,
-        32 + x_offset,
-        8 + y_offset)
-    -- draw sticker
-    draw_sticker(post, 32 + x_offset, 8 + y_offset)
+    if not post.show_big_tit then
+        draw_post_pic(
+            post,
+            32 + x_offset,
+            8 + y_offset)
+        -- draw sticker
+        draw_sticker(post, 32 + x_offset, 8 + y_offset)
+    else
+        draw_big_tit(
+            post,
+            32 + x_offset,
+            8 + y_offset)
+    end
     -- text
     print(
         post.first_row, 
@@ -340,7 +366,7 @@ function draw_debug_stuff()
     -- print(posts[0].first_row, 0, 0, 7)
     -- print(posts_x_offset, 0, 0, 7)
     -- print(flr(rnd(#database)), 0, 0, 7)
-    -- print(tutorial_posts[1], 0, 0, 7)
+    -- print(posts[1].flip_x, 0, 0, 7)
 end
 
 function draw_camera_shake()
@@ -348,9 +374,17 @@ function draw_camera_shake()
         camera(
             rnd(camera_shake_intensity) - (camera_shake_intensity / 2), 
             rnd(camera_shake_intensity) - (camera_shake_intensity / 2))
+        -- change_colors()
         camera_shake_cooldown -= 0.1
     else
         camera()
+        -- pal()
+    end
+end
+
+function change_colors()
+    for i = 0, 16 do
+        pal(i, rnd(16))
     end
 end
 
@@ -501,11 +535,16 @@ function draw_tutorial_posts()
 end
 
 function draw_profile_pic(id, x, y)
-    sspr(id * 16, 16, 16, 16, x, y)
+    -- rendering bug?
+    sspr(id * 16, 15, 16, 16, x, y)
 end
 
-function draw_post_pic(id, x, y)
-    sspr(id * 32, 32, 32, 32, x, y)
+function draw_post_pic(post, x, y)
+    sspr(post.pic_id * 32, 32, 32, 32, x, y, 32, 32, post.flip_x)
+end
+
+function draw_big_tit(post, x, y)
+    sspr(0, 64, 32, 32, x, y, 32, 32, post.flip_x)
 end
 
 function blinking_text_centered(text, y)
@@ -520,18 +559,27 @@ end
 
 -- start music/sfx stuff
 
-function start_music()
+function start_menu_music()
     if enable_music then
-        music(0)
+        music(10)
+    end
+end
+
+function start_game_music()
+    if enable_music then
+        if not music_is_playing then
+            music(0)
+            music_is_playing = true
+        end
     end
 end
 
 function sfx_correct()
-
+    sfx(38)
 end
 
 function sfx_wrong()
-
+    sfx(39)
 end
 
 -- end music/sfx stuff
@@ -541,7 +589,7 @@ function _init()
     load_database()
     generate_posts()
     load_tutorial_posts()
-    start_music()
+    start_menu_music()
 end
 
 function _update()
@@ -573,7 +621,6 @@ function _draw()
     if gamestate == tutorial then
         draw_background()
         draw_tutorial_posts()
-        draw_debug_stuff()
         blinking_text_centered("premi freccia dx per avanzare", 9)
     end
     if gamestate == game then
@@ -586,6 +633,7 @@ function _draw()
     end
     if gamestate == gameover then
         draw_gameover_screen()
+        draw_camera_shake()
     end
 end
 __gfx__
@@ -740,8 +788,26 @@ __sfx__
 001400001a050000001a050000001a050000001a0500000015050000001505000000150500000015050000001905000000190500000019050000001905000000210500000021000210501e000210501e00021050
 0014000021050000002105000000210502105020000000002105021050210502105020050200501c0501c05020050200502005020050200502005021050200501e05000000000001e050000001e050000001e050
 0014000000000000000000000000000000000000000000000000000000000000000000000000001e0601c0401904017040190401e0601c0401904017040190401e0601c0401904017040190401e0601c04000000
+0113000028040270402804029040280402404026040280402904028040290402b0402904026040240402604028040260402804029040280402404023040240402604226042280402804026040260402604226042
+0013000018550000000000000000185500000021550000001855000000000001a55000000000001f55000000235500000000000245501a5501a5501a5501a5501a5500000023552235521f552235521f5521f552
+011300000c0530000000000000000c6430000000000000003f3350c05300000000000c6430000000000000000c0530000000000000000c6430000000000000000c0530000000000000000c05300000000003f335
+011300001005500000000000000010055000000e055000001105500000000001305500000000000c0550000010055000000000011055130551305513055130550e0550000010055100550e0550c0550e05510055
+0113000023030220302303018030230301f03021030230302403023030240302603024030210301f0302103023030210302303024030230301f030230301f0302103221032230322303221032210322103221032
+011300000c0433f225246050c04324645246050c0430c0430c043246453f2250c043246450000024605246050c04300000000000c043246453f2250c003246050c043000003f2253f22524645246452464524645
+011300001353013530135301353013530135301353013530155301553015530155301553015530155301553013530135301353013530135301353013530135301053010530105301053010530105301053013530
+001300001f5500000000000000001f550000001e550000002155000000000002355000000000001c550000001f550000000000021550235501f5501a5501a5501f55000000000000000000000000000000000000
+011300001c5501c5500c5001c5501c5500c5031c5501c550000001f5501f550000001e5501e5501e5501e5501c5501c550000001c5501c550000001c5501c550000001f5501f5500000023552235522355223552
+01130000175501755017500175501755017500175501755000000175501755000000175501755017550175501755017550000001755017550000001755017550000001755017550000001a5521a5521a5521a552
+011300000c0433f2253f2250c04324645000000c0430c0430c043246453f2250c04324645000003f225246450c043000003f2250c043246453f22524645000000c043000003f2253f22524645246452464524645
+011300001c0501d0501c0501b0501c0501d0501c0501b0001c050210501c050180501c050210501f0501d0001f0501f0501f05021050210501d0501d0501d0501f0501f0501f0501f05000000000000000000000
+011300002404024040240402404024040240402b0402b0402d0402d0402d0402d04000000000002b0402b0402f0402f04024040240402f0402f0402d0402d0402b0402b0402b0402b0402b0422b0422b0422b042
+011200002404024040240402404024040240002b0402b0402d0402d0402d0402d0402d040240402f040240402f0402d0402f040240402f0402d0402b040240402b0402d0402b0402d0402b0402b0422b0422b042
+0013000018030180301803018030180300000018030180300000000000180301803018030180300000000000180301803018030180301803000000000001c0001c0301c0301c0301c03000000000000000000000
+001300001005500000000000000010055000000e055000001105500000000001305500000000000c0550000010055000000000011055130551305513055130550e0550000010055100550e0550c0050e00510005
+0101000005320063200732006320083200e3200c320133201132017320153200532008320163200b320203202a3201432019320263201f32023320263202032025320223203032029320273202e3202132033320
+010100003f32038320313202c32026320343201f320353201c32032320243201c320163202c3201e3200a3200932026320233201b3200732014320113200f3200d32014320123201132006320053200b32000020
 __music__
-00 01020315
+01 01020315
 00 01020315
 00 0702054b
 00 08020644
@@ -751,7 +817,13 @@ __music__
 00 10021112
 00 1002110f
 02 10021114
-00 5042514f
-00 53425154
+01 1618191c
+00 161b191a
+00 161b191a
+00 411b191d
+00 171b191d
+00 1e201f1b
+00 1e201f1b
+00 181b4344
+02 181b4344
 
-+
