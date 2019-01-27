@@ -568,7 +568,7 @@ end
 
 function draw_profile_pic(id, x, y)
     -- rendering bug?
-    sspr(id * 16, 16, 16, 16, x, y)
+    sspr(id * 16, 15, 16, 16, x, y)
 end
 
 function draw_post_pic(post, x, y)
