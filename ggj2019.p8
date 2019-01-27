@@ -6,6 +6,7 @@ menu = 0
 tutorial = 1
 game = 2
 gameover = 3
+credits = 4
 gamestate = menu
 -- gameplay globals
 posts = {}
@@ -15,6 +16,7 @@ dirty_stickers = {}
 score = 0
 countdown = 1
 -- animation globals
+falling_hearts = {}
 menu_lock = false
 -- game animation globals
 swipe_direction = 0
@@ -409,6 +411,8 @@ end
 function process_menu_screen()
     if btnp(1) and not menu_lock then
         change_state(tutorial)
+    elseif btnp(0) and not menu_lock then
+        change_state(credits)
     else
         menu_lock = false
     end
@@ -431,6 +435,14 @@ function process_gameover_screen()
     end
 end
 
+function process_credits_screen()
+    if btnp(1) and not menu_lock then
+        change_state(menu)
+    else
+        menu_lock = false
+    end
+end
+
 function evaluate_end_tutorial()
     if tutorial_posts[1] == nil then
         change_state(game)
@@ -443,8 +455,16 @@ end
 
 function draw_menu_screen()
     rectfill(0, 0, 128, 128, 12)
+    falling_hearts_draw()
     sspr(0, 96, 128, 32, 0, 27)
-    blinking_text_centered("premi freccia dx per iniziare", 94) 
+    -- subtitle
+    credits_text = "(pulisci l'internet)"
+    print(credits_text, h_center(credits_text), 63, 7)
+    -- start text
+    blinking_text_centered("premi freccia dx per iniziare", 80)
+    -- credits text
+    credits_text = "premi freccia sx per i credits"
+    print(credits_text, h_center(credits_text), 94, 5)
 end
 
 function draw_tutorial_screen()
@@ -462,6 +482,18 @@ function draw_gameover_screen()
     blinking_text_centered("premi freccia dx per riprovare", 104 + y_offset)
 end
 
+function draw_credits_screen()
+    local y_offset = 2
+    rectfill(0, 0, 128, 128, 12)
+    falling_hearts_draw()
+    draw_text_wave(" tambler the game ", 14 + y_offset)
+    draw_text_center("a pierettini production", 36 + y_offset)
+    draw_text_center("art: piera falcone", 54 + y_offset)
+    draw_text_center("code: giorgio pomettini", 72 + y_offset)
+    draw_text_center("music: tecla zorzi", 90 + y_offset)
+    blinking_text_centered("premi freccia dx per continuare", 108 + y_offset)
+end
+
 function draw_text_wave(text, y)
     for i = 0, #text do
 		wave_amount = 3
@@ -472,7 +504,7 @@ function draw_text_wave(text, y)
 end
 
 function draw_text_center(text, y)
-    print(text, h_center(text), y)
+    print(text, h_center(text), y, 7)
 end
 
 function h_center(text)
@@ -555,6 +587,27 @@ function blinking_text_centered(text, y)
     end
 end
 
+function falling_hearts_init()
+    falling_hearts = {}
+    for i = 1, 20 do
+        heart = {}
+        heart.x = rnd(128)
+        heart.y = rnd(128) - 128
+        heart.speed = 1 + rnd(1)
+        add(falling_hearts, heart)
+    end
+end
+
+function falling_hearts_draw()
+    for i = 1, 20 do
+        falling_hearts[i].y += falling_hearts[i].speed
+        print("♥", falling_hearts[i].x, falling_hearts[i].y, 8)
+        if (falling_hearts[i].y > 128) then
+            falling_hearts[i].y = 0
+        end
+    end
+end
+
 -- end other draw stuff
 
 -- start music/sfx stuff
@@ -590,6 +643,7 @@ function _init()
     generate_posts()
     load_tutorial_posts()
     start_menu_music()
+    falling_hearts_init()
 end
 
 function _update()
@@ -611,6 +665,9 @@ function _update()
     end
     if gamestate == gameover then
         process_gameover_screen()
+    end
+    if gamestate == credits then
+        process_credits_screen()
     end
 end
 
@@ -634,6 +691,9 @@ function _draw()
     if gamestate == gameover then
         draw_gameover_screen()
         draw_camera_shake()
+    end
+    if gamestate == credits then
+        draw_credits_screen()
     end
 end
 __gfx__
