@@ -40,7 +40,7 @@
       --btnIcon--pressed: #111111;
       --btn__analogBg: #232f37;
     }
-    body { height: 100vh; font-family: Verdana, Arial, sans-serif; padding: 0; margin: 0; outline: none; background: #000; overflow: hidden; }
+    body { height: 100vh; font-family: Verdana, Arial, sans-serif; padding: 0; margin: 0; outline: none; background: #000; overflow: hidden; position: fixed; }
     /* ------ POSITION GAME-CANVAS ------ */
     canvas#canvas {
       width: 512px; height: 512px;                /* max game size: 512px */
@@ -186,6 +186,11 @@
 				pico8_gpio = new Array(128),              // <= used to let pico8-cart change buttonset
 				changeButtonset;                          // usage: changeButtonset(2) to activates .buttonset-2
 			(function () { // locally scoped
+				// Block scroll
+				document.ontouchmove = function(event){
+    				event.preventDefault();
+				}
+
 				var myElement = document.getElementById('body');
 				var hammertime = new Hammer(myElement);
 
