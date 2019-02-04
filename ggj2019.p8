@@ -62,24 +62,24 @@ function load_database()
     insert_post("nuova dieta", "di kylie", "jenner", true) -- si
     insert_post("qui kim", "kardashian", "nuda", false) -- no
     insert_post("jason momoa", "leaked", "photo", false) -- no
-    insert_post("10 buoni motivi", "per smettere", "di fumare", true)
-    insert_post("le migliori 10", "mete", "europee", true) -- si
-    insert_post("mobili", "ikea", "in super offerta", true) -- si
+    insert_post("10 motivi", "per smettere", "di fumare", true)
+    insert_post("le migliori", "10 mete", "europee", true) -- si
+    insert_post("mobili", "ikea in", "iper offerta", true) -- si <--- "super offerta" sforava :(
     insert_post("uomo caldo", "a 3 km", "da te", false) -- no
     insert_post("coppia di", "scambisti", "cerca donna", false) -- no
-    insert_post("vibratori rosa", "in sconto", "", false) -- no
+    insert_post("vibratori", "rosa", "in sconto", false) -- no
     insert_post("sito con", "video", "molto fetish", false) -- no
     insert_post("coppia di", "scambisti", "cerca uomo", false)
     insert_post("sito per", "articoli", "da pesca", true) -- si
     insert_post("sito per", "oggetti", "cinesissimi", true) -- si
     insert_post("fammi vedere", "i tuoi", "piedini", false) -- no 13
-    insert_post("nuove ricettine", "su", "verdebasilico", true) -- si
-    insert_post("prevendita per", "concerto di", "gigi d'alessio", true) -- si
+    insert_post("nuove", "ricettine su", "vrdbasilico", true) -- si <--- "verdebasilico" non entrava sorry :(
+    insert_post("prevendita", "concerto di", "gg d'alessio", true) -- si <--- ho dovuto tagliarla :(
     insert_post("vendita", "accessori di", "hello kitty", true) -- si 16 
     insert_post("video ose'", "per", "omosessuali", false)
     insert_post("foto di", "peni", "extra-large", false)
     insert_post("rihanna", "leaked", "photo", false)
-    insert_post("sito di", "barzellette non", "divertenti", true)
+    insert_post("sito di", "barzellette", "divertenti", true)
 end
 
 function load_tutorial_posts()
@@ -256,6 +256,7 @@ end
 function evaluate_gameover()
     if countdown <= 0 then
         change_state(gameover)
+        sfx_wrong()
     end
 end
 
