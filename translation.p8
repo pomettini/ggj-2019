@@ -42,52 +42,34 @@ enable_music = true
 function load_database()
     database = {}
     -- first row, second row, third row, is not porn
-    insert_post("donna calda", "a 2 km", "da te", false) -- no
-    insert_post("vendesi", "soprammobili", "usati", true) -- si
-    insert_post("clicca qui", "per il", "ca**o", false) -- no
-    insert_post("passata di", "pomodoro", "tre per due", true)
-    insert_post("vendo", "la droga", "", false) -- no
-    insert_post("qui foto", "di gattini", "", true) -- si
-    insert_post("qui foto", "di", "cagnolini", true) -- si
-    insert_post("biscotti", "in offerta", "", true) -- si
-    insert_post("sito", "bellissimo", "sui memini", true) -- si
-    insert_post("guardate che", "belle le", "mie tette", false) -- no
+    insert_post("hot girl", "just 2 km", "from you", false)
+    insert_post("selling", "used", "knick-knack", true)
+    insert_post("click here", "to see", "my d**k", false)
+    insert_post("20% off", "on", "mac&cheese", true)
+    insert_post("I sell", "drug", "", false)
+    insert_post("pics of", "cute kittens", "", true)
+    insert_post("pics of", "cute puppies", "", true)
+    insert_post("cookies", "50% discount", "", true)
+    insert_post("funny website", "for memes", "", true)
+    insert_post("look at", "my big", "b00bies", false)
     insert_post("nuovissimi", "giochi per", "playstation", true)
-    insert_post("altri", "memini", "divertenti", true) -- si
-    insert_post("qui battute", "sui coder", "", true) -- si
+    insert_post("another", "meme", "page", true)
+    insert_post("here for", "programmer humor", "", true)
     -- insert_post("game of", "thrones", "streaming", true)
-    insert_post("leggi", "hentai", "online", false) -- no
-    insert_post("nuovo modo", "allungamento", "del pene", false) -- no
-    insert_post("visite", "gratuite", "urologo", true) -- si
-    insert_post("nuova dieta", "di kylie", "jenner", true) -- si
-    insert_post("qui kim", "kardashian", "nuda", false) -- no
-    insert_post("jason momoa", "leaked", "photo", false) -- no
-    insert_post("10 buoni motivi", "per smettere", "di fumare", true)
-    insert_post("le migliori 10", "mete", "europee", true) -- si
-    insert_post("mobili", "ikea", "in super offerta", true) -- si
-    insert_post("uomo caldo", "a 3 km", "da te", false) -- no
-    insert_post("coppia di", "scambisti", "cerca donna", false) -- no
-    insert_post("vibratori rosa", "in sconto", "", false) -- no
-    insert_post("sito con", "video", "molto fetish", false) -- no
-    insert_post("coppia di", "scambisti", "cerca uomo", false)
-    insert_post("sito per", "articoli", "da pesca", true) -- si
-    insert_post("sito per", "oggetti", "cinesissimi", true) -- si
-    insert_post("fammi vedere", "i tuoi", "piedini", false) -- no 13
-    insert_post("nuove ricettine", "su", "verdebasilico", true) -- si
-    insert_post("prevendita per", "concerto di", "gigi d'alessio", true) -- si
-    insert_post("vendita", "accessori di", "hello kitty", true) -- si 16 
-    insert_post("video ose'", "per", "omosessuali", false)
-    insert_post("foto di", "peni", "extra-large", false)
-    insert_post("rihanna", "leaked", "photo", false)
-    insert_post("sito di", "barzellette non", "divertenti", true)
+    insert_post("read", "hentai", "online", false)
+    insert_post("working method", "for penis", "enlargement.", false)
+    insert_post("free", "gratuite", "urologo", true)
+    insert_post("kylie", "jenner new 100%", "working diet", true)
+    insert_post("naked kim", "kardashian", "here", false)
+    insert_post("jason momoa", "leaked", "photo", false)
 end
 
 function load_tutorial_posts()
-    insert_tutorial_post("sei rob, il", "nuovo moderatore", "di tambler")
-    insert_tutorial_post("il tuo lavoro e'", "eliminiare i", "contenuti espliciti")
-    insert_tutorial_post("premi la freccia", "a destra per", "approvare il post")
-    insert_tutorial_post("premi la freccia", "a sinistra per", "eliminare il post")
-    insert_tutorial_post("se sbagli sarai", "licenziato!!!", "")
+    insert_tutorial_post("you're rob, the", "new tambler", "moderator")
+    insert_tutorial_post("your job is", "to delete", "explicit contents")
+    insert_tutorial_post("swipe right", "to", "approve the post")
+    insert_tutorial_post("swipe left", "to", "delete the post")
+    insert_tutorial_post("if you make a", "mistake you will", "be fired")
 end
 
 function load_stickers()
