@@ -85,8 +85,8 @@ end
 function load_tutorial_posts()
     insert_tutorial_post("sei rob, il", "nuovo moderatore", "di tambler")
     insert_tutorial_post("il tuo lavoro e'", "eliminiare i", "contenuti espliciti")
-    insert_tutorial_post("premi la freccia", "a destra per", "approvare il post")
-    insert_tutorial_post("premi la freccia", "a sinistra per", "eliminare il post")
+    insert_tutorial_post("fai swipe", "a destra per", "approvare il post")
+    insert_tutorial_post("fai swipe", "a sinistra per", "eliminare il post")
     insert_tutorial_post("se sbagli sarai", "licenziato!!!", "")
 end
 
@@ -480,16 +480,16 @@ function draw_menu_screen()
     credits_text = "(pulisci l'internet)"
     print(credits_text, h_center(credits_text), 63, 7)
     -- start text
-    blinking_text_centered("premi freccia dx per iniziare", 80)
+    blinking_text_centered("fai swipe a dx per iniziare", 80)
     -- credits text
-    credits_text = "premi freccia sx per i credits"
+    credits_text = "fai swipe a sx per i credits"
     print(credits_text, h_center(credits_text), 94, 5)
 end
 
 function draw_tutorial_screen()
     rectfill(0, 0, 128, 128, 0)
     print("tutorial", 60, 60, 7)
-    print("premi freccia dx per continuare", 15, 80, 7)
+    print("fai swipe a dx per continuare", 15, 80, 7)
 end
 
 function draw_gameover_screen()
@@ -498,7 +498,7 @@ function draw_gameover_screen()
     draw_text_wave("  game over  ", 26 + y_offset)
     draw_text_center("sei stato cacciato!", 52 + y_offset)
     draw_text_center("il tuo punteggio e': "..score, 78 + y_offset)
-    blinking_text_centered("premi freccia su per riprovare", 104 + y_offset)
+    blinking_text_centered("fai swipe su per riprovare", 104 + y_offset)
 end
 
 function draw_credits_screen()
@@ -510,7 +510,7 @@ function draw_credits_screen()
     draw_text_center("art: piera falcone", 54 + y_offset)
     draw_text_center("code: giorgio pomettini", 72 + y_offset)
     draw_text_center("music: tecla zorzi", 90 + y_offset)
-    blinking_text_centered("premi freccia dx per continuare", 108 + y_offset)
+    blinking_text_centered("fai swipe a dx per continuare", 108 + y_offset)
 end
 
 function draw_text_wave(text, y)
@@ -697,7 +697,7 @@ function _draw()
     if gamestate == tutorial then
         draw_background()
         draw_tutorial_posts()
-        blinking_text_centered("premi freccia dx per avanzare", 9)
+        blinking_text_centered("fai swipe a dx per avanzare", 9)
     end
     if gamestate == game then
         draw_background()
