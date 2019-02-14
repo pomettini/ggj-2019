@@ -1,54 +1,45 @@
 ﻿<html manifest="game.manifest">
-  <!-- <= LINK TO MANIFEST (to cache files for offline-access= -->
+<!-- <= LINK TO MANIFEST (to cache files for offline-access= -->
 
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <!--
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!--
     Based on https://github.com/headjump/pico8_html_template
     You are free to remove this comment or leave it here so others may find and use the repo as well :)
   -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta
-      name="apple-mobile-web-app-title"
-      content="Tambler: Pulisci L'Internet"
-    />
-    <!-- <= WEBAPP TITLE -->
-    <link rel="apple-touch-icon" href="icon.png" />
-    <!-- <= YOUR ICON -->
-    <link rel="icon" href="icon.png" />
-    <!-- <= YOUR ICON -->
-    <!--
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Tambler: Pulisci L'Internet" />
+  <!-- <= WEBAPP TITLE -->
+  <link rel="apple-touch-icon" href="icon.png" />
+  <!-- <= YOUR ICON -->
+  <link rel="icon" href="icon.png" />
+  <!-- <= YOUR ICON -->
+  <!--
     Icon info:
     ----------
     There are many different resolutions for different devices supported or recommended,
     but I wanted this template to be easy to use "manually" and for me it works fine
     to have a single PNG icon at 200x200. (200x20git0 is the minimum for facebok-sharing to use the og:image as thumbnail)
   -->
-    <title>Tambler: Pulisci L'Internet</title>
-    <!-- <= WEBSITE TITLE -->
-    <meta name="description" content="Game description" />
-    <!-- <= SITE DESCRIPTION as seen by web-search-engines -->
+  <title>Tambler: Pulisci L'Internet</title>
+  <!-- <= WEBSITE TITLE -->
+  <meta name="description" content="Game description" />
+  <!-- <= SITE DESCRIPTION as seen by web-search-engines -->
 
-    <!-- Info as seen by sharing apps like WhatsApp or Facebook, so they can show a preview-image and description when you share the URL -->
-    <meta property="og:type" content="game" />
-    <meta property="og:title" content="Tambler: Pulisci L'Internet" />
-    <!-- <= GAME TITLE -->
-    <meta
-      property="og:image"
-      content="https://headjump.github.io/pico8_html_template/icon.png"
-    />
-    <!-- <= GAME IMAGE (you can also use a screenshot instead of the icon, but be sure to use the FULL URL here!) -->
-    <meta property="og:description" content="Game description" />
-    <!-- <= GAME DESCRIPTION -->
+  <!-- Info as seen by sharing apps like WhatsApp or Facebook, so they can show a preview-image and description when you share the URL -->
+  <meta property="og:type" content="game" />
+  <meta property="og:title" content="Tambler: Pulisci L'Internet" />
+  <!-- <= GAME TITLE -->
+  <meta property="og:image" content="https://headjump.github.io/pico8_html_template/icon.png" />
+  <!-- <= GAME IMAGE (you can also use a screenshot instead of the icon, but be sure to use the FULL URL here!) -->
+  <meta property="og:description" content="Game description" />
+  <!-- <= GAME DESCRIPTION -->
 
-    <style TYPE="text/css">
-      /* ------- DEFINE BUTTON COLORS ------- */
+  <style TYPE="text/css">
+    /* ------- DEFINE BUTTON COLORS ------- */
       :root {
         --btn: #1288d1;
         --btn--pressed: #29adff;
@@ -144,74 +135,72 @@
         display: none;
       }
     </style>
-  </head>
+</head>
 
-  <body id="body">
+<body id="body">
+  <script type="text/javascript">
+    // ----------------- DISPLAY TOUCH CONTROLS? ----------------- %>
+    if (
+      window.location.href.indexOf("?touch") !== -1 || // to test on not-touch devices: add "?touch" to the URL
+      window.location.href.indexOf("&touch") !== -1 ||
+      navigator.userAgent.match(/Android/i) ||
+      navigator.userAgent.match(/webOS/i) ||
+      navigator.userAgent.match(/iPhone/i) ||
+      navigator.userAgent.match(/iPad/i) ||
+      navigator.userAgent.match(/iPod/i) ||
+      navigator.userAgent.match(/BlackBerry/i) ||
+      navigator.userAgent.match(/Windows Phone/i)
+    ) {
+      document.body.className += " touch-supported";
+      window.TOUCH = true;
+    } else {
+      document.body.className += " touch-not-supported";
+    }
+    // ----------------- IS STANDALONE WEBAPP? ----------------- %>
+    if (
+      window.location.href.indexOf("?standalone") !== -1 || // to test on not-standalone devices: add "?standalone" to the URL
+      window.location.href.indexOf("&standalone") !== -1 ||
+      navigator.standalone
+    ) {
+      document.body.className += " is-standalone";
+      window.TOUCH = true;
+    } else {
+      document.body.className += " not-standalone";
+    }
+    // To test both TOUCH and STANDALONE, add "?touch&standalone" to the URL
+  </script>
+
+  <div class="canvas-wrapper">
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+  </div>
+
+  <div>
     <script type="text/javascript">
-      // ----------------- DISPLAY TOUCH CONTROLS? ----------------- %>
-      if (
-        window.location.href.indexOf("?touch") !== -1 || // to test on not-touch devices: add "?touch" to the URL
-        window.location.href.indexOf("&touch") !== -1 ||
-        navigator.userAgent.match(/Android/i) ||
-        navigator.userAgent.match(/webOS/i) ||
-        navigator.userAgent.match(/iPhone/i) ||
-        navigator.userAgent.match(/iPad/i) ||
-        navigator.userAgent.match(/iPod/i) ||
-        navigator.userAgent.match(/BlackBerry/i) ||
-        navigator.userAgent.match(/Windows Phone/i)
-      ) {
-        document.body.className += " touch-supported";
-        window.TOUCH = true;
-      } else {
-        document.body.className += " touch-not-supported";
-      }
-      // ----------------- IS STANDALONE WEBAPP? ----------------- %>
-      if (
-        window.location.href.indexOf("?standalone") !== -1 || // to test on not-standalone devices: add "?standalone" to the URL
-        window.location.href.indexOf("&standalone") !== -1 ||
-        navigator.standalone
-      ) {
-        document.body.className += " is-standalone";
-        window.TOUCH = true;
-      } else {
-        document.body.className += " not-standalone";
-      }
-      // To test both TOUCH and STANDALONE, add "?touch&standalone" to the URL
+      // ------ SETUP USED FOR PICO8 CART ------
+      var canvas = document.getElementById("canvas"),
+        Module = {
+          canvas: canvas
+        };
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      // ------ BLOCK CURSOR-KEYS FROM SCROLLING ------
+      var onKeyDown_blocker = function (event) {
+        event = event || window.event;
+        var o = document.activeElement;
+        if (!o || o == document.body || o.tagName == "canvas") {
+          if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+            if (event.preventDefault) event.preventDefault();
+          }
+        }
+      };
+      document.addEventListener("keydown", onKeyDown_blocker, false);
     </script>
 
-    <div class="canvas-wrapper">
-      <canvas
-        class="emscripten"
-        id="canvas"
-        oncontextmenu="event.preventDefault()"
-      ></canvas>
-    </div>
+    <script async type="text/javascript" src="ggj2019.js"></script>
+    <!-- <= INCLUDES YOUR cart.js FILE -->
 
-    <div>
-      <script type="text/javascript">
-        // ------ SETUP USED FOR PICO8 CART ------
-        var canvas = document.getElementById("canvas"),
-          Module = { canvas: canvas };
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        // ------ BLOCK CURSOR-KEYS FROM SCROLLING ------
-        var onKeyDown_blocker = function(event) {
-          event = event || window.event;
-          var o = document.activeElement;
-          if (!o || o == document.body || o.tagName == "canvas") {
-            if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) {
-              if (event.preventDefault) event.preventDefault();
-            }
-          }
-        };
-        document.addEventListener("keydown", onKeyDown_blocker, false);
-      </script>
-
-      <script async type="text/javascript" src="ggj2019.js"></script>
-      <!-- <= INCLUDES YOUR cart.js FILE -->
-
-      <!-- PICO8 CONTROL BUTTONS [reset] [pause] [fullscreen - not visible when using touch-control] [mute] -->
-      <!-- <div class="pico8_btns">
+    <!-- PICO8 CONTROL BUTTONS [reset] [pause] [fullscreen - not visible when using touch-control] [mute] -->
+    <!-- <div class="pico8_btns">
 			<span class="pico8_el" onclick="Module.pico8Reset();">
 				<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAaklEQVR4Ae2dOwoAMQhE15A+rfc/3bZ7AlMnQfywCkKsfcgMM9ZP+QHtIn0vLeBAFduiFdQ/0DmvtR5LXJ6CPSXe2ZXcFNlTxFbemKrbZPs35XogeS9xeQr+anT6LzoOwEDwZJ7jwhXUnwkTTiDQ2Ja34AAAABB0RVh0TG9kZVBORwAyMDExMDIyMeNZtsEAAAAASUVORK5CYII="
 				 alt="Reset" width=12 height=12 /> Reset</span>
@@ -225,11 +214,11 @@
 				<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAXklEQVR4Ae2doQ4AIQxD4YLH8v9fh+ULhjpxxSwLg2uyapr1JRu1iV5Z+1BGl4+xNpX38SYo2uRvYiT5LwEmt+ocgXVLrhPEgBiw8Q5w7/kueSkK+D2tJO4E/I3GrwkqQCBabEj/4QAAABB0RVh0TG9kZVBORwAyMDExMDIyMeNZtsEAAAAASUVORK5CYII="
 				 alt="Toggle Sound" width=12 height=12 /> Sound</span>
 		</div> -->
-    </div>
+  </div>
 
-    <!-- ASK USER TO SET THE SITE AS A STANDALONE-WEBAPP -->
+  <!-- ASK USER TO SET THE SITE AS A STANDALONE-WEBAPP -->
 
-    <!-- <div class="show-if-touch">
+  <!-- <div class="show-if-touch">
 		<div class="show-if-not-standalone">
 			<div class="addToHomescreen__hint">
 				Add this website to your homescreen for better performance and audio!
@@ -240,58 +229,111 @@
 		Check the <a href="https://github.com/headjump/pico8_html_template">source-code</a>!
 	</div> -->
 
-    <script src="hammer.min.js"></script>
-    <script type="text/javascript">
-      // --------- HANDLE TOUCH-EVENTS ON BUTTONS ---------
-      //
-      // IMPORTANT FOR TESTING:
-      //   The buttons ONLY work with touch-events, so you can't test them
-      //   on a regular browser with your mouse.
-      //   Chrome allows for simulating touch-events in the developer-tools:
-      //   -> https://developers.google.com/web/tools/chrome-devtools/device-mode/
-      if (window.TOUCH) {
-        var GPIO_BUTTONSET_INDEX = 0,
-          GPIO_ANALOG_X_INDEX = 1,
-          GPIO_ANALOG_Y_INDEX = 2,
-          pico8_buttons = [0, 0, 0, 0, 0, 0, 0, 0], // <= the first element in this array will be updated by the touch-buttons
-          pico8_gpio = new Array(128), // <= used to let pico8-cart change buttonset
-          changeButtonset; // usage: changeButtonset(2) to activates .buttonset-2
-        (function() {
-          // locally scoped
-          // Block scroll
-          document.ontouchmove = function(event) {
-            event.preventDefault();
-          };
+  <script src="hammer.min.js"></script>
+  <script type="text/javascript">
+    // --------- HANDLE TOUCH-EVENTS ON BUTTONS ---------
+    //
+    // IMPORTANT FOR TESTING:
+    //   The buttons ONLY work with touch-events, so you can't test them
+    //   on a regular browser with your mouse.
+    //   Chrome allows for simulating touch-events in the developer-tools:
+    //   -> https://developers.google.com/web/tools/chrome-devtools/device-mode/
+    if (window.TOUCH) {
+      var GPIO_BUTTONSET_INDEX = 0,
+        GPIO_ANALOG_X_INDEX = 1,
+        GPIO_ANALOG_Y_INDEX = 2,
+        pico8_buttons = [0, 0, 0, 0, 0, 0, 0, 0], // <= the first element in this array will be updated by the touch-buttons
+        pico8_gpio = new Array(128), // <= used to let pico8-cart change buttonset
+        changeButtonset; // usage: changeButtonset(2) to activates .buttonset-2
+      (function () {
+        // locally scoped
+        // Block scroll
+        document.ontouchmove = function (event) {
+          event.preventDefault();
+        };
 
-          var myElement = document.getElementById("body");
-          var hammertime = new Hammer(myElement);
+        var myElement = document.getElementById("body");
+        var hammertime = new Hammer(myElement);
 
-          hammertime.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
+        hammertime.get("swipe").set({
+          direction: Hammer.DIRECTION_ALL
+        });
 
-          hammertime.on("swipeleft", function() {
-            console.log("left");
-            pico8_buttons[0] = 1;
-            setTimeout(reset_state, 100);
-          });
+        hammertime.on("swipeleft", function () {
+          console.log("left");
+          pico8_buttons[0] = 1;
+          setTimeout(reset_state, 100);
+        });
 
-          hammertime.on("swiperight", function() {
-            console.log("right");
-            pico8_buttons[0] = 2;
-            setTimeout(reset_state, 100);
-          });
+        hammertime.on("swiperight", function () {
+          console.log("right");
+          pico8_buttons[0] = 2;
+          setTimeout(reset_state, 100);
+        });
 
-          hammertime.on("swipeup", function() {
-            console.log("up");
-            pico8_buttons[0] = 4;
-            setTimeout(reset_state, 100);
-          });
+        hammertime.on("swipeup", function () {
+          console.log("up");
+          pico8_buttons[0] = 4;
+          setTimeout(reset_state, 100);
+        });
 
-          function reset_state() {
-            pico8_buttons[0] = 0;
-            console.log("reset buttons");
+        function reset_state() {
+          pico8_buttons[0] = 0;
+          console.log("reset buttons");
+        }
+      })();
+    }
+  </script>
+  <script src="leap-0.6.4.min.js"></script>
+  <script>
+    var GPIO_BUTTONSET_INDEX = 0,
+      GPIO_ANALOG_X_INDEX = 1,
+      GPIO_ANALOG_Y_INDEX = 2,
+      pico8_buttons = [0, 0, 0, 0, 0, 0, 0, 0], // <= the first element in this array will be updated by the touch-buttons
+      pico8_gpio = new Array(128), // <= used to let pico8-cart change buttonset
+      changeButtonset; // usage: changeButtonset(2) to activates .buttonset-2
+
+    var controllerOptions = {
+      enableGestures: true
+    };
+    Leap.loop(controllerOptions, function (frame) {
+
+      // Display Gesture object data
+      if (frame.gestures.length > 0) {
+        for (var i = 0; i < frame.gestures.length; i++) {
+          var gesture = frame.gestures[i];
+          if (gesture.type == "swipe") {
+            //Classify swipe as either horizontal or vertical
+            var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
+            //Classify as right-left or up-down
+            if (isHorizontal) {
+              if (gesture.direction[0] > 0) {
+                console.log("right");
+                pico8_buttons[0] = 2;
+                setTimeout(reset_state, 100);
+              } else {
+                console.log("left");
+                pico8_buttons[0] = 1;
+                setTimeout(reset_state, 100);
+              }
+            } else { //vertical
+              if (gesture.direction[1] > 0) {
+                console.log("up");
+                pico8_buttons[0] = 4;
+                setTimeout(reset_state, 100);
+              }
+            }
+            // console.log(swipeDirection)
           }
-        })();
+        }
       }
-    </script>
-  </body>
+    });
+
+    function reset_state() {
+      pico8_buttons[0] = 0;
+      console.log("reset buttons");
+    }
+  </script>
+</body>
+
 </html>
