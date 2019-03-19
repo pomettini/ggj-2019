@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+const userAgent = navigator.userAgent;
+if(/android/i.test(userAgent))
+{
+    window.location.replace("https://play.google.com/apps/testing/com.pierettini.tambler");
+}
+if(/iPad|iPhone|iPod/i.test(userAgent))
+{
+    window.location.replace("https://testflight.apple.com/join/eGg0ekoz");
+}
+</script>
+</body>
+</html>
