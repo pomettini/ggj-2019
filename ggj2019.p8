@@ -3,7 +3,7 @@ version 16
 __lua__
 -- debug
 debug_stop_tick = false
-enable_music = false
+enable_music = true
 -- states
 menu = 0
 tutorial = 1
@@ -510,6 +510,9 @@ function process_gameover_screen()
     if btnp(2) and not menu_lock then
         reset_game_state()
         change_state(game)
+    elseif btnp(3) and not menu_lock then
+        reset_game_state()
+        change_state(menu)
     else
         menu_lock = false
     end
