@@ -337,6 +337,11 @@ function reset_game_state()
     as_name[3] = 1
 end
 
+function reset_game_state_and_tutorial()
+    reset_game_state()
+    load_tutorial_posts()
+end
+
 function add_sticker(post)
     post.sticker_x = rnd(24)
     post.sticker_y = rnd(24)
@@ -510,8 +515,8 @@ function process_gameover_screen()
     if btnp(2) and not menu_lock then
         reset_game_state()
         change_state(game)
-    elseif btnp(3) and not menu_lock then
-        reset_game_state()
+    elseif btnp(4) and not menu_lock then
+        reset_game_state_and_tutorial()
         change_state(menu)
     else
         menu_lock = false
