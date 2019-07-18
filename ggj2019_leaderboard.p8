@@ -1,15 +1,18 @@
 pico-8 cartridge // http://www.pico-8.com
-version 18
+version 16
 __lua__
--- tambler: pulisci l'internet
--- by pierettini
-
+-- debug
+debug_stop_tick = false
+enable_music = true
 -- states
 menu = 0
 tutorial = 1
 game = 2
 gameover = 3
 credits = 4
+leaderboard = 5
+add_score = 6
+-- gamestate = menu
 gamestate = menu
 -- gameplay globals
 posts = {}
@@ -18,6 +21,13 @@ safe_stickers = {}
 dirty_stickers = {}
 score = 0
 countdown = 1
+high_scores = {}
+-- add score globals
+as_index = 1
+as_name = {}
+as_name[1] = 1
+as_name[2] = 1
+as_name[3] = 1
 -- animation globals
 falling_hearts = {}
 menu_lock = false
@@ -40,7 +50,45 @@ countdown_speed = 0.0015
 profile_pics = 8
 post_pics = 4
 blinking_speed = 2
-enable_music = true
+high_scores_count = 5
+-- text stuff
+uint_to_char = {
+    a = 1,
+    b = 2,
+    c = 3,
+    d = 4,
+    e = 5,
+    f = 6,
+    g = 7,
+    h = 8,
+    i = 9,
+    j = 10,
+    k = 11,
+    l = 12,
+    m = 13,
+    n = 14,
+    o = 15,
+    p = 16,
+    q = 17,
+    r = 18,
+    s = 19,
+    t = 20,
+    u = 21,
+    v = 22,
+    w = 23,
+    x = 24,
+    y = 25,
+    z = 26
+}
+char_to_uint = {
+    "a", "b", "c", "d", "e", "f", 
+    "g", "h", "i", "j", "k", "l", 
+    "m", "n", "o", "p", "q", "r", 
+    "s", "t", "u", "v", "w", "x", 
+    "y", "z"
+}
+-- when the index is zero it doesn't give error
+char_to_uint[0] = "!"
 
 function load_database()
     database = {}
@@ -283,6 +331,15 @@ function reset_game_state()
     is_animating_swipe = false
     posts_y_offset = 0
     posts_x_offset = 0
+    as_index = 1
+    as_name[1] = 1
+    as_name[2] = 1
+    as_name[3] = 1
+end
+
+function reset_game_state_and_tutorial()
+    reset_game_state()
+    load_tutorial_posts()
 end
 
 function add_sticker(post)
@@ -435,6 +492,8 @@ function process_menu_screen()
         change_state(tutorial)
     elseif btnp(0) and not menu_lock then
         change_state(credits)
+    elseif btnp(2) and not menu_lock then
+        change_state(leaderboard)
     else
         menu_lock = false
     end
@@ -449,9 +508,16 @@ function process_tutorial_input()
 end
 
 function process_gameover_screen()
+    if check_if_high_score() then
+        change_state(add_score)
+    end
+
     if btnp(2) and not menu_lock then
         reset_game_state()
         change_state(game)
+    elseif btnp(4) and not menu_lock then
+        reset_game_state_and_tutorial()
+        change_state(menu)
     else
         menu_lock = false
     end
@@ -462,6 +528,44 @@ function process_credits_screen()
         change_state(menu)
     else
         menu_lock = false
+    end
+end
+
+function process_leaderboard()
+    if btnp(3) and not menu_lock then
+        change_state(menu)
+    else
+        menu_lock = false
+    end
+end
+
+function process_add_score()
+    if btnp(0) then
+        as_index -= 1
+        -- cannot go before index 1
+        if (as_index <= 1) as_index = 1
+    end
+    if btnp(1) then
+        as_index += 1
+    end
+    if btnp(2) then
+        as_name[as_index] -= 1
+        as_name[as_index] %= 27
+        -- this shit cannot be zero!
+        if (as_name[as_index] == 0) as_name[as_index] = 26
+    end
+    if btnp(3) then
+        as_name[as_index] += 1
+        as_name[as_index] %= 27
+        -- this shit cannot be zero!
+        if (as_name[as_index] == 0) as_name[as_index] = 1
+    end
+    if as_index > 3 then
+        -- first add score
+        -- then reset state
+        add_to_high_scores()
+        reset_game_state()
+        change_state(leaderboard)
     end
 end
 
@@ -487,6 +591,9 @@ function draw_menu_screen()
     -- credits text
     credits_text = "fai swipe a sx per i credits"
     print(credits_text, h_center(credits_text), 94, 5)
+    -- leaderboard text
+    leaderboard_text = "fai swipe su per i punteggi"
+    print(leaderboard_text, h_center(leaderboard_text), 108, 5)
 end
 
 function draw_tutorial_screen()
@@ -609,6 +716,14 @@ function blinking_text_centered(text, y)
     end
 end
 
+function blinking_text(text, x, y)
+    if (time() * blinking_speed) % 2 > 1 then
+        print(text, x, y, 7)
+    else
+        print(text, x, y, 5)
+    end
+end
+
 function falling_hearts_init()
     falling_hearts = {}
     for i = 1, 20 do
@@ -659,7 +774,174 @@ end
 
 -- end music/sfx stuff
 
+-- start score stuff
+
+function set_scores_default()
+    for i = 1, high_scores_count do
+        score = {}
+        score.name = "rob"
+        score.score = ((high_scores_count - i) + 1) * 10
+        add(high_scores, score)
+    end
+end
+
+function print_score_table()
+    for i = 1, high_scores_count do
+        print(high_scores[i].name.." "..high_scores[i].score)
+    end
+end
+
+function print_cartridge_content()
+    for i = 0, 15 do
+        print(dget(i))
+    end
+end
+
+function get_scores()
+    -- high scores are saved in memory like this:
+    -- name 1
+    -- name 1
+    -- name 1
+    -- score 1
+    -- name 2
+    -- name 2
+    -- name 2
+    -- score 2    
+    high_scores = {}
+    for i = 1, high_scores_count do
+        local cart_index = i - 1
+        high_scores[i] = {}
+        high_scores[i].name = ""
+        high_scores[i].name = high_scores[i].name..char_to_uint[dget(0 + (cart_index * 4))]
+        high_scores[i].name = high_scores[i].name..char_to_uint[dget(1 + (cart_index * 4))]
+        high_scores[i].name = high_scores[i].name..char_to_uint[dget(2 + (cart_index * 4))]
+        high_scores[i].score = dget(3 + (cart_index * 4), high_scores[i].score)
+    end
+end
+
+function set_scores()
+    for i = 1, high_scores_count do
+        local cart_index = i - 1
+        dset(0 + (cart_index * 4), uint_to_char[sub(high_scores[i].name, 1, 1)])
+        dset(1 + (cart_index * 4), uint_to_char[sub(high_scores[i].name, 2, 2)])
+        dset(2 + (cart_index * 4), uint_to_char[sub(high_scores[i].name, 3, 3)])
+        dset(3 + (cart_index * 4), high_scores[i].score)
+    end
+end
+
+function check_if_high_score()
+    return score > high_scores[high_scores_count].score
+end
+
+function add_to_high_scores()
+    local entry = {}
+    -- horrible, horrible code
+    -- i'm so bad
+    -- please don't look at this code
+    -- please
+    -- i'm better than this
+    entry.name = char_to_uint[as_name[1]]..char_to_uint[as_name[2]]..char_to_uint[as_name[3]]
+    entry.score = score
+    add(high_scores, entry)
+    sort_high_scores()
+    set_scores()
+end
+
+function sort_high_scores()
+    function by_last(a, b)
+        return a.score > b.score
+    end
+    qsort(high_scores, by_last)
+end
+
+function draw_leaderboard()
+    local x_offset = -4
+    local y_offset = 2
+    local text_y_offset = 30
+    cls()
+    rectfill(0, 0, 128, 128, 12)
+    falling_hearts_draw()
+    draw_text_wave(" best scores ", 14 + y_offset)
+    color(7)
+    for i = 1, high_scores_count do
+        print(high_scores[i].name, 42 + x_offset, (i * 12) + text_y_offset)
+        print(high_scores[i].score, 84 + x_offset, (i * 12) + text_y_offset)
+    end
+    blinking_text_centered("fai swipe giu per continuare", 110 + y_offset)
+end
+
+function draw_add_score()
+    local x_offset = -2
+    local y_offset = -4
+    cls()
+    rectfill(0, 0, 128, 128, 12)
+    falling_hearts_draw()
+    draw_text_wave("sei in classifica!", 26 + y_offset)
+    draw_text_center("inserisci il tuo nome", 52 + y_offset)
+    print(char_to_uint[as_name[1]], 54 + x_offset, 78 + y_offset)
+
+    if as_index > 1 then
+        print(char_to_uint[as_name[2]], 64 + x_offset, 78 + y_offset)
+    end
+    if as_index > 2 then
+        print(char_to_uint[as_name[3]], 74 + x_offset, 78 + y_offset)
+    end
+
+    blinking_text_centered("fai swipe dx per avanzare", 104 + y_offset)
+end
+
+-- end score stuff
+
+-- a: array to be sorted in-place
+-- c: comparator (optional, defaults to ascending)
+-- l: first index to be sorted (optional, defaults to 1)
+-- r: last index to be sorted (optional, defaults to #a)
+function qsort(a,c,l,r)
+    c,l,r=c or ascending,l or 1,r or #a
+    if l<r then
+        if c(a[r],a[l]) then
+            a[l],a[r]=a[r],a[l]
+        end
+        local lp,rp,k,p,q=l+1,r-1,l+1,a[l],a[r]
+        while k<=rp do
+            if c(a[k],p) then
+                a[k],a[lp]=a[lp],a[k]
+                lp+=1
+            elseif not c(a[k],q) then
+                while c(q,a[rp]) and k<rp do
+                    rp-=1
+                end
+                a[k],a[rp]=a[rp],a[k]
+                rp-=1
+                if c(a[k],p) then
+                    a[k],a[lp]=a[lp],a[k]
+                    lp+=1
+                end
+            end
+            k+=1
+        end
+        lp-=1
+        rp+=1
+        a[l],a[lp]=a[lp],a[l]
+        a[r],a[rp]=a[rp],a[r]
+        qsort(a,c,l,lp-1       )
+        qsort(a,c,  lp+1,rp-1  )
+        qsort(a,c,       rp+1,r)
+    end
+end
+
+-- start pico8 reserved functions
+
 function _init()
+    -- start debug
+    cartdata("tambler_1")
+    -- set_scores_default()
+    -- set_scores()
+    get_scores()
+    -- print_score_table()
+    -- print(check_if_high_score())
+    -- end debug
+
     load_stickers()
     load_database()
     generate_posts()
@@ -669,6 +951,10 @@ function _init()
 end
 
 function _update()
+    -- start debug stuff
+    if (debug_stop_tick == true) return
+    -- end debug stuff
+
     if gamestate == menu then
         process_menu_screen()
     end
@@ -691,9 +977,19 @@ function _update()
     if gamestate == credits then
         process_credits_screen()
     end
+    if gamestate == add_score then
+        process_add_score()
+    end
+    if gamestate == leaderboard then
+        process_leaderboard()
+    end
 end
 
 function _draw()
+    -- start debug stuff
+    if (debug_stop_tick == true) return
+    -- end debug stuff
+
     if gamestate == menu then
         draw_menu_screen()
     end
@@ -716,6 +1012,12 @@ function _draw()
     end
     if gamestate == credits then
         draw_credits_screen()
+    end
+    if gamestate == add_score then
+        draw_add_score()
+    end
+    if gamestate == leaderboard then
+        draw_leaderboard()
     end
 end
 __gfx__
