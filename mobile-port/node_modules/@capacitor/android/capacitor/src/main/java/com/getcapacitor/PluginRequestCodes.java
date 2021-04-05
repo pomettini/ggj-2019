@@ -22,4 +22,6 @@ public class PluginRequestCodes {
   public static final int FILESYSTEM_REQUEST_URI_PERMISSIONS = 9018;
   public static final int FILESYSTEM_REQUEST_STAT_PERMISSIONS = 9019;
   public static final int FILESYSTEM_REQUEST_RENAME_PERMISSIONS = 9020;
+  public static final int FILESYSTEM_REQUEST_COPY_PERMISSIONS = 9021;
+  public static final int FILESYSTEM_REQUEST_ALL_PERMISSIONS = 9022;
 }
