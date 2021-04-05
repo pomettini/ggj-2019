@@ -1,0 +1,13 @@
+{
+  "appId": "com.pierettini.tambler",
+  "appName": "Tambler",
+  "bundledWebRuntime": true,
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "backgroundColor": "#000000",
+      "launchAutoHide": false
+    }
+  }
+}
